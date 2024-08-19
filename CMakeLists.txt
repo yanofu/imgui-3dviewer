@@ -8,30 +8,47 @@ project(
 find_package(OpenGL)
 
 set(IMGUI_SOURCE_DIR ${CMAKE_SOURCE_DIR}/imgui)
-set(GLFW_LIB_DIR ${CMAKE_SOURCE_DIR}/glfw/lib-vc2010-64)
-set(GLFW_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/glfw/include)
+set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
+set(IMGUI_MISC_CPP_DIR ${IMGUI_SOURCE_DIR}/misc/cpp)
+
+set(IMGUI_LIBS_DIR ${IMGUI_SOURCE_DIR}/examples/libs)
+set(GLFW_LIB ${IMGUI_LIBS_DIR}/glfw/lib-vc2010-64)
+set(GLFW_INCLUDE_DIR ${IMGUI_LIBS_DIR}/glfw/include)
+
 set(GLM_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/glm)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_executable(
-    Imgui3DViewer
+set(SOURCE_FILES
     main.cpp
     camera.hpp
-    ${IMGUI_SOURCE_DIR}/imgui_impl_opengl3.cpp
-    ${IMGUI_SOURCE_DIR}/imgui_impl_glfw.cpp
+    ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp
+    ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp
     ${IMGUI_SOURCE_DIR}/imgui.cpp
     ${IMGUI_SOURCE_DIR}/imgui_tables.cpp
     ${IMGUI_SOURCE_DIR}/imgui_widgets.cpp
-    ${IMGUI_SOURCE_DIR}/imgui_draw.cpp
     ${IMGUI_SOURCE_DIR}/imgui_demo.cpp
-    ${IMGUI_SOURCE_DIR}/imgui_stdlib.cpp
+    ${IMGUI_SOURCE_DIR}/imgui_draw.cpp
+    ${IMGUI_MISC_CPP_DIR}/imgui_stdlib.cpp
+)
+
+add_executable(
+    Imgui3DViewer
+    ${SOURCE_FILES}
+)
+
+target_compile_definitions(
+    Imgui3DViewer PUBLIC
+    IMGUI_DEFINE_MATH_OPERATORS
+    "ImDrawIdx=unsigned int"
 )
 
 target_include_directories(
     Imgui3DViewer PUBLIC
     ${IMGUI_SOURCE_DIR}
+    ${IMGUI_MISC_CPP_DIR}
+    ${IMGUI_BACKENDS_DIR}
     ${GLFW_INCLUDE_DIR}
     ${GLM_INCLUDE_DIR}
     happly
@@ -39,7 +56,7 @@ target_include_directories(
 
 target_link_libraries(
     Imgui3DViewer
-    ${GLFW_LIB_DIR}/glfw3.lib
+    ${GLFW_LIB}/glfw3.lib
     OpenGL::GL
 )
 
