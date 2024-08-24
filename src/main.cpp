@@ -152,11 +152,8 @@ int main(int, char**)
     bool show3dWindow = true;
     ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    Camera camera;
-    camera.SetCameraView(glm::vec3(0.0f, 0.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    Camera worldCamera;
-    worldCamera.SetCameraView({20, 20, 20}, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera camera(glm::vec3(0.0f, 0.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera worldCamera = Camera::CreateWorldCamera();
     
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -265,7 +262,7 @@ int main(int, char**)
                     position = rx * (position - pivot) + pivot;
                     const auto ry = glm::rotate(glm::mat4(1.0), angleY, camera.GetRightVector());
                     position = (ry * (position - pivot)) + pivot;
-                    camera.SetCameraView(position, camera.GetLookAt(), camera.GetUp());
+                    camera = Camera(position, camera.GetLookAt(), camera.GetUp());
                 }
             }
 

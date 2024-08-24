@@ -13,20 +13,20 @@ public:
         view = glm::lookAt(eye, lookat, up);
     }
 
+    static Camera CreateWorldCamera()
+    {
+        const glm::vec3 eye(20, 20, 20);
+        const glm::vec3 lookat(0.0f, 0.0f, 0.0f);
+        const glm::vec3 up(0.0f, 1.0f, 0.0f);
+        return Camera(eye, lookat, up);
+    }
+
     glm::mat4 GetViewMatrix() const { return view; }
     glm::vec3 GetEye() const { return eye; }
     glm::vec3 GetUp() const { return up; }
     glm::vec3 GetLookAt() const { return lookat; }
     glm::vec3 GetViewDir() const { return -glm::transpose(view)[2]; }
     glm::vec3 GetRightVector() const { return glm::transpose(view)[0]; }
-
-    void SetCameraView(glm::vec3 eye, glm::vec3 lookat, glm::vec3 up)
-    {
-        eye = eye;
-        lookat = lookat;
-        up = up;
-        view = glm::lookAt(eye, lookat, up);
-    }
 
     glm::vec2 ProjectToScreen(const Screen& screen, const Clip& clip, const glm::vec3& point)
     {
