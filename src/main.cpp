@@ -20,6 +20,8 @@
 #include "camera.hpp"
 #include "happly.h"
 
+#include "coordinate_system.h"
+
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
 #endif
@@ -64,6 +66,14 @@ void GlmMatText(const std::string& label, const T mat)
         ImGui::SameLine();
     }
     ImGui::NewLine();
+}
+
+void DrawCoordinateSystem(ImDrawList* drawer, const CoordinateSystem& coordinateSystem)
+{
+    drawer->AddCircleFilled(coordinateSystem.origin, 5, IM_COL32(255, 255, 255, 255));
+    drawer->AddLine(coordinateSystem.origin, coordinateSystem.axisX, IM_COL32(255, 0, 0, 255), 1.0f);
+    drawer->AddLine(coordinateSystem.origin, coordinateSystem.axisY, IM_COL32(0, 255, 0, 255), 1.0f);
+    drawer->AddLine(coordinateSystem.origin, coordinateSystem.axisZ, IM_COL32(0, 0, 255, 255), 1.0f);
 }
 
 int main(int, char**)
@@ -144,7 +154,7 @@ int main(int, char**)
         return 1;
     }
 
-    const std::vector<std::array<double, 3>> modelPoints = plyIn.getVertexPositions();
+    const auto modelPoints = plyIn.getVertexPositions();
 
     // Our state
     bool showDemoWindow = true;
@@ -213,11 +223,11 @@ int main(int, char**)
             static bool displayPointCloud = true;
             ImGui::Checkbox("display pointcloud", &displayPointCloud);
 
-            static bool autoYRotate = false;
-            ImGui::Checkbox("automatic y", &autoYRotate);
+            static bool autoRotateY = false;
+            ImGui::Checkbox("automatic y", &autoRotateY);
 
-            static bool autoXRotate = false;
-            ImGui::Checkbox("automatic x", &autoXRotate);
+            static bool autoRotateX = false;
+            ImGui::Checkbox("automatic x", &autoRotateX);
 
             float windowWidth = (float)ImGui::GetWindowWidth();
             float windowHeight = (float)ImGui::GetWindowHeight();
@@ -236,7 +246,7 @@ int main(int, char**)
                 isDraging = false;
             }
 
-            if(isDraging || autoXRotate || autoYRotate)
+            if(isDraging || autoRotateX || autoRotateY)
             {
                 GlmVecText("Mouse Delta", glm::vec2(io.MouseDelta.x, io.MouseDelta.y));
                 {
@@ -249,11 +259,11 @@ int main(int, char**)
                         mouseDelataX = -io.MouseDelta.x;
                         mouseDelataY = -io.MouseDelta.y;
                     }
-                    if (autoXRotate)
+                    if (autoRotateX)
                     {
                         mouseDelataX = 1;
                     }
-                    if (autoYRotate)
+                    if (autoRotateY)
                     {
                         mouseDelataY = 1;
                     }
@@ -276,16 +286,14 @@ int main(int, char**)
             const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
             const auto screen = Screen(windowsPositionLeftTop, windowsSize);
 
+            ImDrawList* drawlist = ImGui::GetWindowDrawList();
             const auto origin = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
             const auto originAxisX = camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
             const auto originAxisY = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
             const auto originAxisZ = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
 
-            ImDrawList* drawlist = ImGui::GetWindowDrawList();
-            drawlist->AddCircleFilled(ImVec2(origin.x, origin.y), 5, IM_COL32(255, 255, 255, 255));
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisX.x, originAxisX.y), IM_COL32(255, 0, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisY.x, originAxisY.y), IM_COL32(0, 255, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisZ.x, originAxisZ.y), IM_COL32(0, 0, 255, 255), 1.0f);
+            const auto originCoordinateSystem = CoordinateSystem(origin, originAxisX, originAxisY, originAxisZ);
+            DrawCoordinateSystem(drawlist, originCoordinateSystem);
 
             if(displayPointCloud)
             {
@@ -318,27 +326,24 @@ int main(int, char**)
             const auto windowsPositionLeftTop = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
             const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
             const auto screen = Screen(windowsPositionLeftTop, windowsSize);
+
+            const auto drawlist = ImGui::GetWindowDrawList();
+
             const auto origin = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
             const auto originAxisX = worldCamera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
             const auto originAxisY = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
             const auto originAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
-
-            ImDrawList* drawlist = ImGui::GetWindowDrawList();
-            drawlist->AddCircleFilled(ImVec2(origin.x, origin.y), 5, IM_COL32(255, 255, 255, 255));
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisX.x, originAxisX.y), IM_COL32(255, 0, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisY.x, originAxisY.y), IM_COL32(0, 255, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisZ.x, originAxisZ.y), IM_COL32(0, 0, 255, 255), 1.0f);
+            const auto originCoordinateSystem = CoordinateSystem(origin, originAxisX, originAxisY, originAxisZ);
+            DrawCoordinateSystem(drawlist, originCoordinateSystem);
 
             const auto cameraPosition = worldCamera.ProjectToScreen(screen, clip, camera.GetEye());
             const auto cameraAxisX = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
             const auto cameraAxisY = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
             const auto cameraAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
-
-            drawlist->AddCircleFilled(ImVec2(cameraPosition.x, cameraPosition.y), 5, IM_COL32(255, 255, 255, 255));
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(cameraPosition.x, cameraPosition.y), IM_COL32(0, 255, 255, 255), 1.0f);
-            drawlist->AddLine(ImVec2(cameraPosition.x, cameraPosition.y), ImVec2(cameraAxisX.x, cameraAxisX.y), IM_COL32(255, 0, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(cameraPosition.x, cameraPosition.y), ImVec2(cameraAxisY.x, cameraAxisY.y), IM_COL32(0, 255, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(cameraPosition.x, cameraPosition.y), ImVec2(cameraAxisZ.x, cameraAxisZ.y), IM_COL32(0, 0, 255, 255), 1.0f);
+            const auto cameraCoordinateSystem = CoordinateSystem(cameraPosition, cameraAxisX, cameraAxisY, cameraAxisZ);
+            DrawCoordinateSystem(drawlist, cameraCoordinateSystem);
+            
+            drawlist->AddLine(originCoordinateSystem.origin, cameraCoordinateSystem.origin, IM_COL32(0, 255, 255, 255), 1.0f);
 
             ImGui::End();
             ImGui::PopStyleColor(1);
