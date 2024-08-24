@@ -7,6 +7,7 @@ project(
 
 find_package(OpenGL)
 
+set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(IMGUI_SOURCE_DIR ${CMAKE_SOURCE_DIR}/imgui)
 set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
 set(IMGUI_MISC_CPP_DIR ${IMGUI_SOURCE_DIR}/misc/cpp)
@@ -21,8 +22,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 set(SOURCE_FILES
-    main.cpp
-    camera.hpp
+    ${SOURCE_DIR}/main.cpp
     ${IMGUI_BACKENDS_DIR}/imgui_impl_opengl3.cpp
     ${IMGUI_BACKENDS_DIR}/imgui_impl_glfw.cpp
     ${IMGUI_SOURCE_DIR}/imgui.cpp
@@ -46,6 +46,7 @@ target_compile_definitions(
 
 target_include_directories(
     Imgui3DViewer PUBLIC
+    ${SOURCE_DIR}
     ${IMGUI_SOURCE_DIR}
     ${IMGUI_MISC_CPP_DIR}
     ${IMGUI_BACKENDS_DIR}
