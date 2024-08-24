@@ -20,8 +20,6 @@ public:
     glm::vec3 GetViewDir() const { return -glm::transpose(view_)[2]; }
     glm::vec3 GetRightVector() const { return glm::transpose(view_)[0]; }
 
-    Screen GetScreen() const { return screen_; }
-
     void SetCameraView(glm::vec3 eye, glm::vec3 lookat, glm::vec3 up)
     {
         eye_ = eye;
@@ -30,20 +28,10 @@ public:
         view_ = glm::lookAt(eye_, lookat_, up_);
     }
 
-    void SetScreen(const Screen screen)
+    glm::vec2 ProjectToScreen(const Screen& screen, const Clip& clip, const glm::vec3& point)
     {
-        screen_ = screen;
-    }
-
-    void SetClip(const Clip clip)
-    {
-        clip_ = clip;
-    }
-
-    glm::vec2 ProjectToScreen(const glm::vec3& point)
-    {
-        auto projected_viewport = glm::project(point, view_, clip_.GetProjection(), screen_.GetViewPort());
-        auto projected_screen = glm::vec2(screen_.GetViewPortTrans() * glm::vec3(projected_viewport.x, projected_viewport.y, 1));
+        auto projected_viewport = glm::project(point, view_, clip.GetProjection(), screen.GetViewPort());
+        auto projected_screen = glm::vec2(screen.GetViewPortTrans() * glm::vec3(projected_viewport.x, projected_viewport.y, 1));
         return projected_screen;
     }
 
@@ -52,7 +40,5 @@ private:
     glm::vec3 eye_;
     glm::vec3 lookat_;
     glm::vec3 up_;
-    Screen screen_;
-    Clip clip_;
 };
 

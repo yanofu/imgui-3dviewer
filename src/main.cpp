@@ -271,13 +271,13 @@ int main(int, char**)
 
             const float viewWidth = 200.f;
             const float viewHeight = viewWidth * windowHeight / windowWidth;
-            camera.SetClip(Clip(viewWidth, viewHeight, 10.f, 1000.f));
-            camera.SetScreen(Screen(glm::vec2(windowsPosition.x, windowsPosition.y), glm::vec2(windowWidth, windowHeight)));
+            const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
+            const auto screen = Screen(glm::vec2(windowsPosition.x, windowsPosition.y), glm::vec2(windowWidth, windowHeight));
 
-            const auto origin = camera.ProjectToScreen(glm::vec3(0.0, 0.0, 0.0));
-            const auto origin_x_axis = camera.ProjectToScreen(glm::vec3(50.0, 0.0, 0.0));
-            const auto origin_y_axis = camera.ProjectToScreen(glm::vec3(0.0, 50.0, 0.0));
-            const auto origin_z_axis = camera.ProjectToScreen(glm::vec3(0.0, 0.0, 50.0));
+            const auto origin = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
+            const auto origin_x_axis = camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
+            const auto origin_y_axis = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
+            const auto origin_z_axis = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
 
             ImDrawList* drawlist = ImGui::GetWindowDrawList();
             drawlist->AddCircleFilled(ImVec2(origin.x, origin.y), 5, IM_COL32(255, 255, 255, 255));
@@ -289,7 +289,7 @@ int main(int, char**)
             {
                 for (auto model_point : model_points)
                 {
-                    auto point = camera.ProjectToScreen(glm::vec3(model_point[0], model_point[1], model_point[2]));
+                    auto point = camera.ProjectToScreen(screen, clip, glm::vec3(model_point[0], model_point[1], model_point[2]));
                     drawlist->AddCircle(ImVec2(point.x, point.y), 1, IM_COL32(255, 0, 255, 255));
                 }
             }
@@ -311,13 +311,12 @@ int main(int, char**)
 
             const float viewWidth = 200.f;
             const float viewHeight = viewWidth * ImGui::GetWindowHeight() / ImGui::GetWindowWidth();
-            world_camera.SetClip(Clip(viewWidth, viewHeight, 10.f, 1000.f));
-            world_camera.SetScreen(Screen(glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y), glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight())));
-
-            const auto origin = world_camera.ProjectToScreen(glm::vec3(0.0, 0.0, 0.0));
-            const auto origin_x_axis = world_camera.ProjectToScreen(glm::vec3(50.0, 0.0, 0.0));
-            const auto origin_y_axis = world_camera.ProjectToScreen(glm::vec3(0.0, 50.0, 0.0));
-            const auto origin_z_axis = world_camera.ProjectToScreen(glm::vec3(0.0, 0.0, 50.0));
+            const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
+            const auto screen = Screen(glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y), glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()));
+            const auto origin = world_camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
+            const auto origin_x_axis = world_camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
+            const auto origin_y_axis = world_camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
+            const auto origin_z_axis = world_camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
 
             ImDrawList* drawlist = ImGui::GetWindowDrawList();
             drawlist->AddCircleFilled(ImVec2(origin.x, origin.y), 5, IM_COL32(255, 255, 255, 255));
@@ -325,10 +324,10 @@ int main(int, char**)
             drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_y_axis.x, origin_y_axis.y), IM_COL32(0, 255, 0, 255), 1.0f);
             drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_z_axis.x, origin_z_axis.y), IM_COL32(0, 0, 255, 255), 1.0f);
 
-            const auto camera_position = world_camera.ProjectToScreen(camera.GetEye());
-            const auto camera_x_axis = world_camera.ProjectToScreen(glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
-            const auto camera_y_axis = world_camera.ProjectToScreen(glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
-            const auto camera_z_axis = world_camera.ProjectToScreen(glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
+            const auto camera_position = world_camera.ProjectToScreen(screen, clip, camera.GetEye());
+            const auto camera_x_axis = world_camera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
+            const auto camera_y_axis = world_camera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
+            const auto camera_z_axis = world_camera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
 
             drawlist->AddCircleFilled(ImVec2(camera_position.x, camera_position.y), 5, IM_COL32(255, 255, 255, 255));
             drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(camera_position.x, camera_position.y), IM_COL32(0, 255, 255, 255), 1.0f);
