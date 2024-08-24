@@ -37,7 +37,8 @@ static void glfw_error_callback(int error, const char* description)
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-static void GlmVec3Text(const std::string label, const glm::vec3 vec)
+template <typename T>
+void GlmVecText(const std::string& label, const T vec)
 {
     ImGui::Text(label.c_str());
     for (size_t i = 0; i < vec.length(); ++i)
@@ -48,27 +49,21 @@ static void GlmVec3Text(const std::string label, const glm::vec3 vec)
     ImGui::NewLine();
 }
 
-static void GlmVec2Text(const std::string label, const glm::vec2 vec)
+template <typename T>
+void GlmMatText(const std::string& label, const T mat)
 {
     ImGui::Text(label.c_str());
-    for (size_t i = 0; i < vec.length(); ++i)
+    for (size_t i = 0; i < mat.length(); ++i)
     {
-        ImGui::Text(std::to_string(vec[i]).c_str());
+        std::string vec;
+        for(size_t j = 0; j < mat[i].length(); ++j)
+        {
+            vec += std::to_string(mat[i][j]) + std::string("\n");
+        }
+        ImGui::Text(vec.c_str());
         ImGui::SameLine();
     }
     ImGui::NewLine();
-}
-
-static void GlmMat4Text(const std::string label, const glm::mat4x4 mat)
-{
-    ImGui::Text(label.c_str());
-    for (size_t i = 0; i < 4; ++i)
-    {
-        ImGui::Text(std::string(std::to_string(mat[i][0]) + "\n" + std::to_string(mat[i][1]) + "\n" + std::to_string(mat[i][2]) + "\n" + std::to_string(mat[i][3])).c_str());
-        ImGui::SameLine();
-    }
-    ImGui::NewLine();
-
 }
 
 int main(int, char**)
@@ -243,7 +238,7 @@ int main(int, char**)
 
             if(isDraging || auto_x_rotate || auto_y_rotate)
             {
-                GlmVec2Text("Mouse Delta", glm::vec2(io.MouseDelta.x, io.MouseDelta.y));
+                GlmVecText("Mouse Delta", glm::vec2(io.MouseDelta.x, io.MouseDelta.y));
                 {
                     const float delta_angle_x = (2 * IM_PI / windowWidth);
                     const float delta_angle_y = (IM_PI / windowHeight);
@@ -310,9 +305,9 @@ int main(int, char**)
             if (ImGui::Button("Close Me"))
                  show_3d_window = false;
 
-            GlmVec3Text("Camera Position", camera.GetEye());
-            GlmMat4Text("Camera View", camera.GetViewMatrix());
-            GlmMat4Text("Camera View Inverse", glm::inverse(camera.GetViewMatrix()));
+            GlmVecText("Camera Position", camera.GetEye());
+            GlmMatText("Camera View", camera.GetViewMatrix());
+            GlmMatText("Camera View Inverse", glm::inverse(camera.GetViewMatrix()));
 
             const float viewWidth = 200.f;
             const float viewHeight = viewWidth * ImGui::GetWindowHeight() / ImGui::GetWindowWidth();
