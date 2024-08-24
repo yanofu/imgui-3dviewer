@@ -15,10 +15,10 @@ public:
 
     static Camera CreateWorldCamera()
     {
-        const glm::vec3 eye(20, 20, 20);
-        const glm::vec3 lookat(0.0f, 0.0f, 0.0f);
-        const glm::vec3 up(0.0f, 1.0f, 0.0f);
-        return Camera(eye, lookat, up);
+        const auto initialEye = glm::vec3(20, 20, 20);
+        const auto initialLookat = glm::vec3(0.0f, 0.0f, 0.0f);
+        const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        return Camera(initialEye, initialLookat, initialUp);
     }
 
     glm::mat4 GetViewMatrix() const { return view; }

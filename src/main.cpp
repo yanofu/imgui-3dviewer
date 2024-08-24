@@ -152,7 +152,10 @@ int main(int, char**)
     bool show3dWindow = true;
     ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    Camera camera(glm::vec3(0.0f, 0.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    const auto initialEye = glm::vec3(0.0f, 0.0f, 100.0f);
+    const auto initialLookat = glm::vec3(0.0f, 0.0f, 0.0f);
+    const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    Camera camera(initialEye, initialLookat, initialUp);
     Camera worldCamera = Camera::CreateWorldCamera();
     
     // Main loop
@@ -288,7 +291,7 @@ int main(int, char**)
             {
                 for (auto modelPoint : modelPoints)
                 {
-                    auto point = camera.ProjectToScreen(screen, clip, glm::vec3(modelPoint[0], modelPoint[1], modelPoint[2]));
+                    const auto& point = camera.ProjectToScreen(screen, clip, glm::vec3(modelPoint[0], modelPoint[1], modelPoint[2]));
                     drawlist->AddCircle(ImVec2(point.x, point.y), 1, IM_COL32(255, 0, 255, 255));
                 }
             }
