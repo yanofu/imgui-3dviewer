@@ -144,19 +144,19 @@ int main(int, char**)
         return 1;
     }
 
-    const std::vector<std::array<double, 3>> model_points = plyIn.getVertexPositions();
+    const std::vector<std::array<double, 3>> modelPoints = plyIn.getVertexPositions();
 
     // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    bool show_3d_window = true;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool showDemoWindow = true;
+    bool showAnotherWindow = false;
+    bool show3dWindow = true;
+    ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     Camera camera;
     camera.SetCameraView(glm::vec3(0.0f, 0.0f, 100.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-    Camera world_camera;
-    world_camera.SetCameraView({20, 20, 20}, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Camera worldCamera;
+    worldCamera.SetCameraView({20, 20, 20}, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -174,8 +174,8 @@ int main(int, char**)
         ImGui::NewFrame();
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
+        if (showDemoWindow)
+            ImGui::ShowDemoWindow(&showDemoWindow);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
@@ -185,12 +185,12 @@ int main(int, char**)
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-            ImGui::Checkbox("3D Window", &show_3d_window);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Demo Window", &showDemoWindow);      // Edit bools storing our window open/close state
+            ImGui::Checkbox("Another Window", &showAnotherWindow);
+            ImGui::Checkbox("3D Window", &show3dWindow);      // Edit bools storing our window open/close state
 
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+            ImGui::ColorEdit3("clear color", (float*)&clearColor); // Edit 3 floats representing a color
 
             if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
                 counter++;
@@ -203,21 +203,21 @@ int main(int, char**)
             ImGui::End();
         }
 
-        if(show_3d_window)
+        if(show3dWindow)
         {
             ImGui::PushStyleColor(ImGuiCol_WindowBg, (ImVec4)ImColor(0.35f, 0.3f, 0.3f));
-            ImGui::Begin("3D Viewer", &show_3d_window);
+            ImGui::Begin("3D Viewer", &show3dWindow);
             if (ImGui::Button("Close Me"))
-                 show_3d_window = false;
+                 show3dWindow = false;
             
-            static bool display_pointcloud = true;
-            ImGui::Checkbox("display pointcloud", &display_pointcloud);
+            static bool displayPointCloud = true;
+            ImGui::Checkbox("display pointcloud", &displayPointCloud);
 
-            static bool auto_y_rotate = false;
-            ImGui::Checkbox("automatic y", &auto_y_rotate);
+            static bool autoYRotate = false;
+            ImGui::Checkbox("automatic y", &autoYRotate);
 
-            static bool auto_x_rotate = false;
-            ImGui::Checkbox("automatic x", &auto_x_rotate);
+            static bool autoXRotate = false;
+            ImGui::Checkbox("automatic x", &autoXRotate);
 
             float windowWidth = (float)ImGui::GetWindowWidth();
             float windowHeight = (float)ImGui::GetWindowHeight();
@@ -236,34 +236,34 @@ int main(int, char**)
                 isDraging = false;
             }
 
-            if(isDraging || auto_x_rotate || auto_y_rotate)
+            if(isDraging || autoXRotate || autoYRotate)
             {
                 GlmVecText("Mouse Delta", glm::vec2(io.MouseDelta.x, io.MouseDelta.y));
                 {
-                    const float delta_angle_x = (2 * IM_PI / windowWidth);
-                    const float delta_angle_y = (IM_PI / windowHeight);
-                    float mouse_delata_x = 0;
-                    float mouse_delata_y = 0;
+                    const float deltaAngleX = (2 * IM_PI / windowWidth);
+                    const float deltaAngleY = (IM_PI / windowHeight);
+                    float mouseDelataX = 0;
+                    float mouseDelataY = 0;
                     if (isDraging)
                     {
-                        mouse_delata_x = -io.MouseDelta.x;
-                        mouse_delata_y = -io.MouseDelta.y;
+                        mouseDelataX = -io.MouseDelta.x;
+                        mouseDelataY = -io.MouseDelta.y;
                     }
-                    if (auto_x_rotate)
+                    if (autoXRotate)
                     {
-                        mouse_delata_x = 1;
+                        mouseDelataX = 1;
                     }
-                    if (auto_y_rotate)
+                    if (autoYRotate)
                     {
-                        mouse_delata_y = 1;
+                        mouseDelataY = 1;
                     }
-                    const float x_angle = mouse_delata_x * delta_angle_x;
-                    const float y_angle = mouse_delata_y * delta_angle_y;
+                    const float angleX = mouseDelataX * deltaAngleX;
+                    const float angleY = mouseDelataY * deltaAngleY;
                     glm::vec4 position(camera.GetEye(), 1);
                     const glm::vec4 pivot(camera.GetLookAt(), 1);
-                    const auto rx = glm::rotate(glm::mat4(1.0), x_angle, camera.GetUp());
+                    const auto rx = glm::rotate(glm::mat4(1.0), angleX, camera.GetUp());
                     position = rx * (position - pivot) + pivot;
-                    const auto ry = glm::rotate(glm::mat4(1.0), y_angle, camera.GetRightVector());
+                    const auto ry = glm::rotate(glm::mat4(1.0), angleY, camera.GetRightVector());
                     position = (ry * (position - pivot)) + pivot;
                     camera.SetCameraView(position, camera.GetLookAt(), camera.GetUp());
                 }
@@ -272,24 +272,26 @@ int main(int, char**)
             const float viewWidth = 200.f;
             const float viewHeight = viewWidth * windowHeight / windowWidth;
             const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
-            const auto screen = Screen(glm::vec2(windowsPosition.x, windowsPosition.y), glm::vec2(windowWidth, windowHeight));
+            const auto windowsPositionLeftTop = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+            const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+            const auto screen = Screen(windowsPositionLeftTop, windowsSize);
 
             const auto origin = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
-            const auto origin_x_axis = camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
-            const auto origin_y_axis = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
-            const auto origin_z_axis = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
+            const auto originAxisX = camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
+            const auto originAxisY = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
+            const auto originAxisZ = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
 
             ImDrawList* drawlist = ImGui::GetWindowDrawList();
             drawlist->AddCircleFilled(ImVec2(origin.x, origin.y), 5, IM_COL32(255, 255, 255, 255));
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_x_axis.x, origin_x_axis.y), IM_COL32(255, 0, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_y_axis.x, origin_y_axis.y), IM_COL32(0, 255, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_z_axis.x, origin_z_axis.y), IM_COL32(0, 0, 255, 255), 1.0f);
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisX.x, originAxisX.y), IM_COL32(255, 0, 0, 255), 1.0f);
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisY.x, originAxisY.y), IM_COL32(0, 255, 0, 255), 1.0f);
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisZ.x, originAxisZ.y), IM_COL32(0, 0, 255, 255), 1.0f);
 
-            if(display_pointcloud)
+            if(displayPointCloud)
             {
-                for (auto model_point : model_points)
+                for (auto modelPoint : modelPoints)
                 {
-                    auto point = camera.ProjectToScreen(screen, clip, glm::vec3(model_point[0], model_point[1], model_point[2]));
+                    auto point = camera.ProjectToScreen(screen, clip, glm::vec3(modelPoint[0], modelPoint[1], modelPoint[2]));
                     drawlist->AddCircle(ImVec2(point.x, point.y), 1, IM_COL32(255, 0, 255, 255));
                 }
             }
@@ -298,12 +300,12 @@ int main(int, char**)
             ImGui::PopStyleColor(1);
         }
 
-        if(show_3d_window)
+        if(show3dWindow)
         {
             ImGui::PushStyleColor(ImGuiCol_WindowBg, (ImVec4)ImColor(0.35f, 0.3f, 0.3f));
-            ImGui::Begin("3D World View", &show_3d_window);
+            ImGui::Begin("3D World View", &show3dWindow);
             if (ImGui::Button("Close Me"))
-                 show_3d_window = false;
+                 show3dWindow = false;
 
             GlmVecText("Camera Position", camera.GetEye());
             GlmMatText("Camera View", camera.GetViewMatrix());
@@ -312,28 +314,31 @@ int main(int, char**)
             const float viewWidth = 200.f;
             const float viewHeight = viewWidth * ImGui::GetWindowHeight() / ImGui::GetWindowWidth();
             const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
-            const auto screen = Screen(glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y), glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()));
-            const auto origin = world_camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
-            const auto origin_x_axis = world_camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
-            const auto origin_y_axis = world_camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
-            const auto origin_z_axis = world_camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
+
+            const auto windowsPositionLeftTop = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+            const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+            const auto screen = Screen(windowsPositionLeftTop, windowsSize);
+            const auto origin = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
+            const auto originAxisX = worldCamera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
+            const auto originAxisY = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
+            const auto originAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
 
             ImDrawList* drawlist = ImGui::GetWindowDrawList();
             drawlist->AddCircleFilled(ImVec2(origin.x, origin.y), 5, IM_COL32(255, 255, 255, 255));
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_x_axis.x, origin_x_axis.y), IM_COL32(255, 0, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_y_axis.x, origin_y_axis.y), IM_COL32(0, 255, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(origin_z_axis.x, origin_z_axis.y), IM_COL32(0, 0, 255, 255), 1.0f);
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisX.x, originAxisX.y), IM_COL32(255, 0, 0, 255), 1.0f);
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisY.x, originAxisY.y), IM_COL32(0, 255, 0, 255), 1.0f);
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(originAxisZ.x, originAxisZ.y), IM_COL32(0, 0, 255, 255), 1.0f);
 
-            const auto camera_position = world_camera.ProjectToScreen(screen, clip, camera.GetEye());
-            const auto camera_x_axis = world_camera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
-            const auto camera_y_axis = world_camera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
-            const auto camera_z_axis = world_camera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
+            const auto cameraPosition = worldCamera.ProjectToScreen(screen, clip, camera.GetEye());
+            const auto cameraAxisX = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
+            const auto cameraAxisY = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
+            const auto cameraAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
 
-            drawlist->AddCircleFilled(ImVec2(camera_position.x, camera_position.y), 5, IM_COL32(255, 255, 255, 255));
-            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(camera_position.x, camera_position.y), IM_COL32(0, 255, 255, 255), 1.0f);
-            drawlist->AddLine(ImVec2(camera_position.x, camera_position.y), ImVec2(camera_x_axis.x, camera_x_axis.y), IM_COL32(255, 0, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(camera_position.x, camera_position.y), ImVec2(camera_y_axis.x, camera_y_axis.y), IM_COL32(0, 255, 0, 255), 1.0f);
-            drawlist->AddLine(ImVec2(camera_position.x, camera_position.y), ImVec2(camera_z_axis.x, camera_z_axis.y), IM_COL32(0, 0, 255, 255), 1.0f);
+            drawlist->AddCircleFilled(ImVec2(cameraPosition.x, cameraPosition.y), 5, IM_COL32(255, 255, 255, 255));
+            drawlist->AddLine(ImVec2(origin.x, origin.y), ImVec2(cameraPosition.x, cameraPosition.y), IM_COL32(0, 255, 255, 255), 1.0f);
+            drawlist->AddLine(ImVec2(cameraPosition.x, cameraPosition.y), ImVec2(cameraAxisX.x, cameraAxisX.y), IM_COL32(255, 0, 0, 255), 1.0f);
+            drawlist->AddLine(ImVec2(cameraPosition.x, cameraPosition.y), ImVec2(cameraAxisY.x, cameraAxisY.y), IM_COL32(0, 255, 0, 255), 1.0f);
+            drawlist->AddLine(ImVec2(cameraPosition.x, cameraPosition.y), ImVec2(cameraAxisZ.x, cameraAxisZ.y), IM_COL32(0, 0, 255, 255), 1.0f);
 
             ImGui::End();
             ImGui::PopStyleColor(1);
@@ -341,10 +346,10 @@ int main(int, char**)
 
         // Rendering
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+        int displayWidth, displayHeight;
+        glfwGetFramebufferSize(window, &displayWidth, &displayHeight);
+        glViewport(0, 0, displayWidth, displayHeight);
+        glClearColor(clearColor.x * clearColor.w, clearColor.y * clearColor.w, clearColor.z * clearColor.w, clearColor.w);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
