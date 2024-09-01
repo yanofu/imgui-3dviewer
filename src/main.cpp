@@ -162,10 +162,10 @@ int main(int, char**)
     bool show3dWindow = true;
     ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    const auto initialEye = glm::vec3(0.0f, 0.0f, 100.0f);
+    const auto initialPosition = glm::vec3(0.0f, 0.0f, 100.0f);
     const auto initialTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    Camera camera(initialEye, initialTarget, initialUp);
+    Camera camera(initialPosition, initialTarget, initialUp);
     Camera worldCamera = Camera::CreateWorldCamera();
     
     // Main loop
@@ -269,7 +269,7 @@ int main(int, char**)
                     }
                     const float angleX = mouseDelataX * deltaAngleX;
                     const float angleY = mouseDelataY * deltaAngleY;
-                    glm::vec4 position(camera.GetEye(), 1);
+                    glm::vec4 position(camera.GetPosition(), 1);
                     const glm::vec4 pivot(camera.GetTarget(), 1);
                     const auto rx = glm::rotate(glm::mat4(1.0), angleX, camera.GetUp());
                     position = rx * (position - pivot) + pivot;
@@ -315,7 +315,7 @@ int main(int, char**)
             if (ImGui::Button("Close Me"))
                  show3dWindow = false;
 
-            GlmVecText("Camera Position", camera.GetEye());
+            GlmVecText("Camera Position", camera.GetPosition());
             GlmMatText("Camera View", camera.GetViewMatrix());
             GlmMatText("Camera View Inverse", glm::inverse(camera.GetViewMatrix()));
 
@@ -336,7 +336,7 @@ int main(int, char**)
             const auto originCoordinateSystem = CoordinateSystem(origin, originAxisX, originAxisY, originAxisZ);
             DrawCoordinateSystem(drawlist, originCoordinateSystem);
 
-            const auto cameraPosition = worldCamera.ProjectToScreen(screen, clip, camera.GetEye());
+            const auto cameraPosition = worldCamera.ProjectToScreen(screen, clip, camera.GetPosition());
             const auto cameraAxisX = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
             const auto cameraAxisY = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
             const auto cameraAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
