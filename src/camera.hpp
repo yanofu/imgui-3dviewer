@@ -7,10 +7,10 @@ class Camera
 {
 public:
     Camera(){};
-    Camera(const glm::vec3 eye, const glm::vec3 lookat, const glm::vec3 up)
-        : eye(eye), lookat(lookat), up(up)
+    Camera(const glm::vec3 eye, const glm::vec3 target, const glm::vec3 up)
+        : eye(eye), target(target), up(up)
     {
-        view = glm::lookAt(eye, lookat, up);
+        view = glm::lookAt(eye, target, up);
     }
 
     static Camera CreateWorldCamera()
@@ -24,7 +24,7 @@ public:
     glm::mat4 GetViewMatrix() const { return view; }
     glm::vec3 GetEye() const { return eye; }
     glm::vec3 GetUp() const { return up; }
-    glm::vec3 GetLookAt() const { return lookat; }
+    glm::vec3 GetTarget() const { return target; }
     glm::vec3 GetViewDir() const { return -glm::transpose(view)[2]; }
     glm::vec3 GetRightVector() const { return glm::transpose(view)[0]; }
 
@@ -38,7 +38,7 @@ public:
 private:
     glm::mat4 view;
     glm::vec3 eye;
-    glm::vec3 lookat;
+    glm::vec3 target;
     glm::vec3 up;
 };
 

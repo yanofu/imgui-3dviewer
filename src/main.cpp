@@ -163,9 +163,9 @@ int main(int, char**)
     ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     const auto initialEye = glm::vec3(0.0f, 0.0f, 100.0f);
-    const auto initialLookat = glm::vec3(0.0f, 0.0f, 0.0f);
+    const auto initialTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    Camera camera(initialEye, initialLookat, initialUp);
+    Camera camera(initialEye, initialTarget, initialUp);
     Camera worldCamera = Camera::CreateWorldCamera();
     
     // Main loop
@@ -270,12 +270,12 @@ int main(int, char**)
                     const float angleX = mouseDelataX * deltaAngleX;
                     const float angleY = mouseDelataY * deltaAngleY;
                     glm::vec4 position(camera.GetEye(), 1);
-                    const glm::vec4 pivot(camera.GetLookAt(), 1);
+                    const glm::vec4 pivot(camera.GetTarget(), 1);
                     const auto rx = glm::rotate(glm::mat4(1.0), angleX, camera.GetUp());
                     position = rx * (position - pivot) + pivot;
                     const auto ry = glm::rotate(glm::mat4(1.0), angleY, camera.GetRightVector());
                     position = (ry * (position - pivot)) + pivot;
-                    camera = Camera(position, camera.GetLookAt(), camera.GetUp());
+                    camera = Camera(position, camera.GetTarget(), camera.GetUp());
                 }
             }
 
