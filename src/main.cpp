@@ -357,7 +357,7 @@ int main(int, char**)
             const auto& capturedOriginCoordinateSystem = worldCamera.Capture(CoordinateSystem3D::Create().ToArray(), clip);
             const auto& screenOnOriginCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedOriginCoordinateSystem, screen));
 
-            const auto& capturedCameraCoordinateSystem = worldCamera.Capture(worldCamera.CoordinateSystem().ToArray(), clip);
+            const auto& capturedCameraCoordinateSystem = worldCamera.Capture(camera.CoordinateSystem().ToArray(), clip);
             const auto& screenOnCameraCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedCameraCoordinateSystem, screen));
 
             const auto drawer = ImGui::GetWindowDrawList();
