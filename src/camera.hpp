@@ -2,6 +2,9 @@
 
 #include "screen.h"
 #include "clip.h"
+#include "coordinate_system.h"
+#include <vector>
+#include <array>
 
 class Camera
 {
@@ -28,11 +31,50 @@ public:
     glm::vec3 GetViewDir() const { return -glm::transpose(view)[2]; }
     glm::vec3 GetRightVector() const { return glm::transpose(view)[0]; }
 
-    glm::vec2 ProjectToScreen(const Screen& screen, const Clip& clip, const glm::vec3& point)
+
+    CoordinateSystem3D CoordinateSystem() const
     {
-        auto projectedViewport = glm::project(point, view, clip.GetProjection(), screen.GetViewPort());
-        auto projectedScreen = glm::vec2(screen.GetViewPortTrans() * glm::vec3(projectedViewport.x, projectedViewport.y, 1));
-        return projectedScreen;
+        return CoordinateSystem3D(
+                position,
+                glm::inverse(view) * glm::vec4(25.0, 0.0, 0.0, 1.0),
+                glm::inverse(view) * glm::vec4(0.0, 25.0, 0.0, 1.0),
+                glm::inverse(view) * glm::vec4(0.0, 0.0, 25.0, 1.0));
+    }
+
+    std::vector<glm::vec2> Capture(const std::vector<glm::vec3>& object, const Clip& clip)
+    {
+        std::vector<glm::vec2> capturedPoints;
+        const glm::vec4 viewport(0, 0, 1.0, 1.0);
+        for(const glm::vec3& point : object)
+        {
+            capturedPoints.push_back(
+                glm::project(
+                    point,
+                    view,
+                    clip.GetProjection(),
+                    viewport)
+                );
+        }
+
+        return capturedPoints;
+    }
+
+    std::vector<glm::vec2> Capture(const std::vector<std::array<double, 3>>& object, const Clip& clip)
+    {
+        std::vector<glm::vec2> capturedPoints;
+        const glm::vec4 viewport(0, 0, 1.0, 1.0);
+        for(const std::array<double, 3>& point : object)
+        {
+            capturedPoints.push_back(
+                glm::project(
+                    glm::vec3(point[0], point[1], point[2]),
+                    view,
+                    clip.GetProjection(),
+                    viewport)
+                );
+        }
+
+        return capturedPoints;
     }
 
 private:

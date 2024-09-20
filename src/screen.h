@@ -15,8 +15,6 @@ public:
         viewPortTrans = { glm::vec3(1, 0, 0), glm::vec3{0, -1, 0}, glm::vec3{0, size.y, 0} };
     }
 
-    glm::vec2 GetLeftTop() const { return leftTop; }
-    glm::vec2 GetSize() const { return size; }
     glm::vec4 GetViewPort() const { return viewPort; }
     glm::mat3 GetViewPortTrans() const { return viewPortTrans; }
 

@@ -68,12 +68,47 @@ void GlmMatText(const std::string& label, const T mat)
     ImGui::NewLine();
 }
 
-void DrawCoordinateSystem(ImDrawList* drawer, const CoordinateSystem& coordinateSystem)
+void DrawCoordinateSystem(ImDrawList* drawer, const CoordinateSystem2D& coordinateSystem)
 {
-    drawer->AddCircleFilled(coordinateSystem.origin, 5, IM_COL32(255, 255, 255, 255));
-    drawer->AddLine(coordinateSystem.origin, coordinateSystem.axisX, IM_COL32(255, 0, 0, 255), 1.0f);
-    drawer->AddLine(coordinateSystem.origin, coordinateSystem.axisY, IM_COL32(0, 255, 0, 255), 1.0f);
-    drawer->AddLine(coordinateSystem.origin, coordinateSystem.axisZ, IM_COL32(0, 0, 255, 255), 1.0f);
+    drawer->AddCircleFilled(coordinateSystem.Origin(), 5, IM_COL32(255, 255, 255, 255));
+    drawer->AddLine(coordinateSystem.Origin(), coordinateSystem.AxisX(), IM_COL32(255, 0, 0, 255), 1.0f);
+    drawer->AddLine(coordinateSystem.Origin(), coordinateSystem.AxisY(), IM_COL32(0, 255, 0, 255), 1.0f);
+    drawer->AddLine(coordinateSystem.Origin(), coordinateSystem.AxisZ(), IM_COL32(0, 0, 255, 255), 1.0f);
+}
+
+std::vector<glm::vec2> ConvertScreenPoints(const std::vector<glm::vec2>& points, const Screen& screen)
+{
+    std::vector<glm::vec2> convertedPoints;
+    for(auto point : points)
+    {
+        const auto& viewport = screen.GetViewPort();
+        glm::vec3 convertedPoint = {
+            viewport[2] * point.x + viewport[0],
+            viewport[3] * point.y + viewport[1],
+            1
+        };
+
+        const auto& viewportTrans = screen.GetViewPortTrans();
+        convertedPoints.push_back(glm::vec2(viewportTrans * convertedPoint));
+    }
+    return convertedPoints;
+}
+
+void DrawPointCloud(ImDrawList* drawer, const std::vector<glm::vec2>& points)
+{
+    for(auto point : points)
+    {
+        drawer->AddCircle(ImVec2(point.x, point.y), 1, IM_COL32(255, 0, 255, 255));
+    }
+}
+
+void DrawLineBetweenPoints(ImDrawList* drawer, ImVec2 start, ImVec2 end)
+{
+    drawer->AddLine(
+        ImVec2(start.x, start.y),
+        ImVec2(end.x, end.y),
+        IM_COL32(0, 255, 255, 255),
+        1.0f);
 }
 
 int main(int, char**)
@@ -155,7 +190,6 @@ int main(int, char**)
     }
 
     const auto modelPoints = plyIn.getVertexPositions();
-
     // Our state
     bool showDemoWindow = true;
     bool showAnotherWindow = false;
@@ -282,26 +316,19 @@ int main(int, char**)
             const float viewWidth = 200.f;
             const float viewHeight = viewWidth * windowHeight / windowWidth;
             const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
+
             const auto windowsPositionLeftTop = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
             const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
             const auto screen = Screen(windowsPositionLeftTop, windowsSize);
 
             ImDrawList* drawlist = ImGui::GetWindowDrawList();
-            const auto origin = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
-            const auto originAxisX = camera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
-            const auto originAxisY = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
-            const auto originAxisZ = camera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
-
-            const auto originCoordinateSystem = CoordinateSystem(origin, originAxisX, originAxisY, originAxisZ);
-            DrawCoordinateSystem(drawlist, originCoordinateSystem);
+            const auto& capturedOriginCoordinateSystem = camera.Capture(CoordinateSystem3D::Create().ToArray(), clip);
+            DrawCoordinateSystem(drawlist, CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedOriginCoordinateSystem, screen)));
 
             if(displayPointCloud)
             {
-                for (auto modelPoint : modelPoints)
-                {
-                    const auto& point = camera.ProjectToScreen(screen, clip, glm::vec3(modelPoint[0], modelPoint[1], modelPoint[2]));
-                    drawlist->AddCircle(ImVec2(point.x, point.y), 1, IM_COL32(255, 0, 255, 255));
-                }
+                const auto& capturedPoints = camera.Capture(modelPoints, clip);
+                DrawPointCloud(drawlist, ConvertScreenPoints(capturedPoints, screen));
             }
 
             ImGui::End();
@@ -327,23 +354,16 @@ int main(int, char**)
             const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
             const auto screen = Screen(windowsPositionLeftTop, windowsSize);
 
-            const auto drawlist = ImGui::GetWindowDrawList();
+            const auto& capturedOriginCoordinateSystem = worldCamera.Capture(CoordinateSystem3D::Create().ToArray(), clip);
+            const auto& screenOnOriginCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedOriginCoordinateSystem, screen));
 
-            const auto origin = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 0.0));
-            const auto originAxisX = worldCamera.ProjectToScreen(screen, clip, glm::vec3(50.0, 0.0, 0.0));
-            const auto originAxisY = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 50.0, 0.0));
-            const auto originAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::vec3(0.0, 0.0, 50.0));
-            const auto originCoordinateSystem = CoordinateSystem(origin, originAxisX, originAxisY, originAxisZ);
-            DrawCoordinateSystem(drawlist, originCoordinateSystem);
+            const auto& capturedCameraCoordinateSystem = worldCamera.Capture(worldCamera.CoordinateSystem().ToArray(), clip);
+            const auto& screenOnCameraCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedCameraCoordinateSystem, screen));
 
-            const auto cameraPosition = worldCamera.ProjectToScreen(screen, clip, camera.GetPosition());
-            const auto cameraAxisX = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(25.0, 0.0, 0.0, 1.0));
-            const auto cameraAxisY = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 25.0, 0.0, 1.0));
-            const auto cameraAxisZ = worldCamera.ProjectToScreen(screen, clip, glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.0, 0.0, 25.0, 1.0));
-            const auto cameraCoordinateSystem = CoordinateSystem(cameraPosition, cameraAxisX, cameraAxisY, cameraAxisZ);
-            DrawCoordinateSystem(drawlist, cameraCoordinateSystem);
-            
-            drawlist->AddLine(originCoordinateSystem.origin, cameraCoordinateSystem.origin, IM_COL32(0, 255, 255, 255), 1.0f);
+            const auto drawer = ImGui::GetWindowDrawList();
+            DrawCoordinateSystem(drawer, screenOnOriginCoordinateSystem);
+            DrawCoordinateSystem(drawer, screenOnCameraCoordinateSystem);
+            DrawLineBetweenPoints(drawer, screenOnOriginCoordinateSystem.Origin(), screenOnCameraCoordinateSystem.Origin());
 
             ImGui::End();
             ImGui::PopStyleColor(1);
