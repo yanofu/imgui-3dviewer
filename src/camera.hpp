@@ -10,10 +10,25 @@ class Camera
 {
 public:
     Camera(){};
-    Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3 up)
-        : position(position), target(target), up(up)
+    Camera(const glm::vec3 position, const glm::vec3 target, const glm::vec3 up, const Clip& clip)
+        : position(position), target(target), up(up), clip(clip)
     {
         view = glm::lookAt(position, target, up);
+    }
+
+    static Camera CreateCamera(const glm::vec3 position, const glm::vec3 target, const glm::vec3 up)
+    {
+        const auto clip = Clip(200.0f, 200.0f, 10.f, 1000.f);
+        return Camera(position, target, up, clip);
+    }
+
+    static Camera CreateDefaultCamera()
+    {
+        const auto initialPosition = glm::vec3(0, 0, 100);
+        const auto initialTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+        const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        const auto clip = Clip(200.0f, 200.0f, 10.f, 1000.f);
+        return Camera(initialPosition, initialTarget, initialUp, clip);
     }
 
     static Camera CreateWorldCamera()
@@ -21,7 +36,8 @@ public:
         const auto initialPosition = glm::vec3(20, 20, 20);
         const auto initialTarget = glm::vec3(0.0f, 0.0f, 0.0f);
         const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
-        return Camera(initialPosition, initialTarget, initialUp);
+        const auto clip = Clip(200.0f, 200.0f, 10.f, 1000.f);
+        return Camera(initialPosition, initialTarget, initialUp, clip);
     }
 
     glm::mat4 GetViewMatrix() const { return view; }
@@ -41,7 +57,7 @@ public:
                 glm::inverse(view) * glm::vec4(0.0, 0.0, 25.0, 1.0));
     }
 
-    std::vector<glm::vec2> Capture(const std::vector<glm::vec3>& object, const Clip& clip)
+    std::vector<glm::vec2> Capture(const std::vector<glm::vec3>& object)
     {
         std::vector<glm::vec2> capturedPoints;
         const glm::vec4 viewport(0, 0, 1.0, 1.0);
@@ -59,7 +75,7 @@ public:
         return capturedPoints;
     }
 
-    std::vector<glm::vec2> Capture(const std::vector<std::array<double, 3>>& object, const Clip& clip)
+    std::vector<glm::vec2> Capture(const std::vector<std::array<double, 3>>& object)
     {
         std::vector<glm::vec2> capturedPoints;
         const glm::vec4 viewport(0, 0, 1.0, 1.0);
@@ -82,5 +98,6 @@ private:
     glm::vec3 position;
     glm::vec3 target;
     glm::vec3 up;
+    Clip clip;
 };
 

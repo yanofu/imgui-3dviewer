@@ -196,10 +196,7 @@ int main(int, char**)
     bool show3dWindow = true;
     ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    const auto initialPosition = glm::vec3(0.0f, 0.0f, 100.0f);
-    const auto initialTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    Camera camera(initialPosition, initialTarget, initialUp);
+    Camera camera = Camera::CreateDefaultCamera();
     Camera worldCamera = Camera::CreateWorldCamera();
     
     // Main loop
@@ -309,7 +306,7 @@ int main(int, char**)
                     position = rx * (position - pivot) + pivot;
                     const auto ry = glm::rotate(glm::mat4(1.0), angleY, camera.GetRightVector());
                     position = (ry * (position - pivot)) + pivot;
-                    camera = Camera(position, camera.GetTarget(), camera.GetUp());
+                    camera = Camera::CreateCamera(position, camera.GetTarget(), camera.GetUp());
                 }
             }
 
@@ -322,12 +319,17 @@ int main(int, char**)
             const auto screen = Screen(windowsPositionLeftTop, windowsSize);
 
             ImDrawList* drawlist = ImGui::GetWindowDrawList();
-            const auto& capturedOriginCoordinateSystem = camera.Capture(CoordinateSystem3D::Create().ToArray(), clip);
-            DrawCoordinateSystem(drawlist, CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedOriginCoordinateSystem, screen)));
+            const auto& capturedOriginCoordinateSystem = camera.Capture(CoordinateSystem3D::Create().ToArray());
+            DrawCoordinateSystem(
+                drawlist,
+                CoordinateSystem2D::FromArray(
+                    ConvertScreenPoints(capturedOriginCoordinateSystem, screen)
+                    )
+                );
 
             if(displayPointCloud)
             {
-                const auto& capturedPoints = camera.Capture(modelPoints, clip);
+                const auto& capturedPoints = camera.Capture(modelPoints);
                 DrawPointCloud(drawlist, ConvertScreenPoints(capturedPoints, screen));
             }
 
@@ -354,10 +356,10 @@ int main(int, char**)
             const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
             const auto screen = Screen(windowsPositionLeftTop, windowsSize);
 
-            const auto& capturedOriginCoordinateSystem = worldCamera.Capture(CoordinateSystem3D::Create().ToArray(), clip);
+            const auto& capturedOriginCoordinateSystem = worldCamera.Capture(CoordinateSystem3D::Create().ToArray());
             const auto& screenOnOriginCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedOriginCoordinateSystem, screen));
 
-            const auto& capturedCameraCoordinateSystem = worldCamera.Capture(camera.CoordinateSystem().ToArray(), clip);
+            const auto& capturedCameraCoordinateSystem = worldCamera.Capture(camera.CoordinateSystem().ToArray());
             const auto& screenOnCameraCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedCameraCoordinateSystem, screen));
 
             const auto drawer = ImGui::GetWindowDrawList();
