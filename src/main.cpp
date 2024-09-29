@@ -80,17 +80,20 @@ void DrawCoordinateSystem(ImDrawList* drawer, const CoordinateSystem2D& coordina
 
 void DrawPointCloud(ImDrawList* drawer, const std::vector<glm::vec2>& points)
 {
-    for(auto point : points)
+    for(const auto& point : points)
     {
-        drawer->AddCircle(ImVec2(point.x, point.y), 1, IM_COL32(255, 0, 255, 255));
+        drawer->AddCircle(
+            VecConverter<ImVec2, glm::vec2>::Convert(point),
+            1,
+            IM_COL32(255, 0, 255, 255));
     }
 }
 
 void DrawLineBetweenPoints(ImDrawList* drawer, ImVec2 start, ImVec2 end)
 {
     drawer->AddLine(
-        ImVec2(start.x, start.y),
-        ImVec2(end.x, end.y),
+        start,
+        end,
         IM_COL32(0, 255, 255, 255),
         1.0f);
 }
@@ -347,7 +350,7 @@ int main(int, char**)
                     ));
 
             DrawCoordinateSystem(ImGui::GetWindowDrawList(), cameraCoordinatesOnScreen);
-            
+
             DrawLineBetweenPoints(ImGui::GetWindowDrawList(), originCoordinatesOnScreen.Origin(), cameraCoordinatesOnScreen.Origin());
 
             ImGui::End();
