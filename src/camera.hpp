@@ -6,6 +6,8 @@
 #include <vector>
 #include <array>
 
+#include <glm/gtx/string_cast.hpp>
+
 class Camera
 {
 public:
@@ -47,7 +49,6 @@ public:
     glm::vec3 GetViewDir() const { return -glm::transpose(view)[2]; }
     glm::vec3 GetRightVector() const { return glm::transpose(view)[0]; }
 
-
     CoordinateSystem3D CoordinateSystem() const
     {
         return CoordinateSystem3D(
@@ -57,13 +58,13 @@ public:
                 glm::inverse(view) * glm::vec4(0.0, 0.0, 25.0, 1.0));
     }
 
-    std::vector<glm::vec2> Capture(const std::vector<glm::vec3>& object)
+    std::vector<glm::vec2> Capture(const std::vector<glm::vec3>& object) const
     {
         std::vector<glm::vec2> capturedPoints;
-        const glm::vec4 viewport(0, 0, 1.0, 1.0);
-        for(const glm::vec3& point : object)
+        const glm::vec4 viewport(0, 1, 1.0, -1.0);
+        for(const auto& point : object)
         {
-            capturedPoints.push_back(
+            capturedPoints.emplace_back(
                 glm::project(
                     point,
                     view,
@@ -75,13 +76,13 @@ public:
         return capturedPoints;
     }
 
-    std::vector<glm::vec2> Capture(const std::vector<std::array<double, 3>>& object)
+    std::vector<glm::vec2> Capture(const std::vector<std::array<double, 3>>& object) const
     {
         std::vector<glm::vec2> capturedPoints;
-        const glm::vec4 viewport(0, 0, 1.0, 1.0);
-        for(const std::array<double, 3>& point : object)
+        const glm::vec4 viewport(0, 1, 1.0, -1.0);
+        for(const auto& point : object)
         {
-            capturedPoints.push_back(
+            capturedPoints.emplace_back(
                 glm::project(
                     glm::vec3(point[0], point[1], point[2]),
                     view,

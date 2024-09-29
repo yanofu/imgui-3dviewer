@@ -8,19 +8,30 @@ class Screen
 public:
     Screen(){};
     ~Screen(){};
-    Screen(const glm::vec2 leftTop, const glm::vec2 size)
-        : leftTop(leftTop), size(size)
+    Screen(const glm::vec2 leftTopInWindow, const glm::vec2 windowSize)
+        : leftTopInWindow(leftTopInWindow), windowSize(windowSize)
     {
-        viewPort = {leftTop.x, -leftTop.y, size.x, size.y};
-        viewPortTrans = { glm::vec3(1, 0, 0), glm::vec3{0, -1, 0}, glm::vec3{0, size.y, 0} };
     }
 
-    glm::vec4 GetViewPort() const { return viewPort; }
-    glm::mat3 GetViewPortTrans() const { return viewPortTrans; }
+    glm::mat3 ToTransform() const
+    {
+        return {
+            glm::vec3(windowSize.x, 0, 0),
+            glm::vec3(0, windowSize.y, 0),
+            glm::vec3(leftTopInWindow.x, leftTopInWindow.y, 1)};
+    }
+    
+    glm::vec4 ToTransformVector() const
+    {
+         return {windowSize.x, windowSize.y, leftTopInWindow.x, leftTopInWindow.y};
+    }
+
+    glm::vec4 ToFixedScaleTransformVector() const
+    {
+         return {windowSize.x, windowSize.x, leftTopInWindow.x, leftTopInWindow.y};
+    }
 
 private:
-    glm::vec2 leftTop;
-    glm::vec2 size;
-    glm::vec4 viewPort;
-    glm::mat3 viewPortTrans;
+    glm::vec2 leftTopInWindow;
+    glm::vec2 windowSize;
 };

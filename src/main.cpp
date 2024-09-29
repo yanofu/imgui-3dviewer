@@ -21,6 +21,8 @@
 #include "happly.h"
 
 #include "coordinate_system.h"
+#include "viewport_transform.h"
+#include "vec_converter.h"
 
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 #include <GLES2/gl2.h>
@@ -74,24 +76,6 @@ void DrawCoordinateSystem(ImDrawList* drawer, const CoordinateSystem2D& coordina
     drawer->AddLine(coordinateSystem.Origin(), coordinateSystem.AxisX(), IM_COL32(255, 0, 0, 255), 1.0f);
     drawer->AddLine(coordinateSystem.Origin(), coordinateSystem.AxisY(), IM_COL32(0, 255, 0, 255), 1.0f);
     drawer->AddLine(coordinateSystem.Origin(), coordinateSystem.AxisZ(), IM_COL32(0, 0, 255, 255), 1.0f);
-}
-
-std::vector<glm::vec2> ConvertScreenPoints(const std::vector<glm::vec2>& points, const Screen& screen)
-{
-    std::vector<glm::vec2> convertedPoints;
-    for(auto point : points)
-    {
-        const auto& viewport = screen.GetViewPort();
-        glm::vec3 convertedPoint = {
-            viewport[2] * point.x + viewport[0],
-            viewport[3] * point.y + viewport[1],
-            1
-        };
-
-        const auto& viewportTrans = screen.GetViewPortTrans();
-        convertedPoints.push_back(glm::vec2(viewportTrans * convertedPoint));
-    }
-    return convertedPoints;
 }
 
 void DrawPointCloud(ImDrawList* drawer, const std::vector<glm::vec2>& points)
@@ -309,28 +293,25 @@ int main(int, char**)
                     camera = Camera::CreateCamera(position, camera.GetTarget(), camera.GetUp());
                 }
             }
+            const auto& viewportTransform = ViewportTransform::Create(
+                VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowPos()),
+                VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowSize()));
 
-            const float viewWidth = 200.f;
-            const float viewHeight = viewWidth * windowHeight / windowWidth;
-            const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
-
-            const auto windowsPositionLeftTop = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
-            const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
-            const auto screen = Screen(windowsPositionLeftTop, windowsSize);
-
-            ImDrawList* drawlist = ImGui::GetWindowDrawList();
-            const auto& capturedOriginCoordinateSystem = camera.Capture(CoordinateSystem3D::Create().ToArray());
-            DrawCoordinateSystem(
-                drawlist,
+            const auto& originCoordinatesOnScreen = 
                 CoordinateSystem2D::FromArray(
-                    ConvertScreenPoints(capturedOriginCoordinateSystem, screen)
-                    )
-                );
+                    viewportTransform.Transform(
+                        camera.Capture(CoordinateSystem3D::Create().ToArray())
+                    ));
+
+            DrawCoordinateSystem(ImGui::GetWindowDrawList(), originCoordinatesOnScreen);
 
             if(displayPointCloud)
             {
-                const auto& capturedPoints = camera.Capture(modelPoints);
-                DrawPointCloud(drawlist, ConvertScreenPoints(capturedPoints, screen));
+                const auto& capturedPointsOnScreen = 
+                    viewportTransform.Transform(
+                        camera.Capture(modelPoints)
+                    );
+                DrawPointCloud(ImGui::GetWindowDrawList(), capturedPointsOnScreen);
             }
 
             ImGui::End();
@@ -348,24 +329,26 @@ int main(int, char**)
             GlmMatText("Camera View", camera.GetViewMatrix());
             GlmMatText("Camera View Inverse", glm::inverse(camera.GetViewMatrix()));
 
-            const float viewWidth = 200.f;
-            const float viewHeight = viewWidth * ImGui::GetWindowHeight() / ImGui::GetWindowWidth();
-            const auto clip = Clip(viewWidth, viewHeight, 10.f, 1000.f);
+            const auto& viewportTransform = ViewportTransform::Create(
+                VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowPos()),
+                VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowSize()));
 
-            const auto windowsPositionLeftTop = glm::vec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
-            const auto windowsSize = glm::vec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
-            const auto screen = Screen(windowsPositionLeftTop, windowsSize);
+            const auto& originCoordinatesOnScreen = 
+                CoordinateSystem2D::FromArray(
+                    viewportTransform.Transform(
+                        worldCamera.Capture(CoordinateSystem3D::Create().ToArray())
+                    ));
+            DrawCoordinateSystem(ImGui::GetWindowDrawList(), originCoordinatesOnScreen);
 
-            const auto& capturedOriginCoordinateSystem = worldCamera.Capture(CoordinateSystem3D::Create().ToArray());
-            const auto& screenOnOriginCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedOriginCoordinateSystem, screen));
+            const auto& cameraCoordinatesOnScreen = 
+                CoordinateSystem2D::FromArray(
+                    viewportTransform.Transform(
+                        worldCamera.Capture(camera.CoordinateSystem().ToArray())
+                    ));
 
-            const auto& capturedCameraCoordinateSystem = worldCamera.Capture(camera.CoordinateSystem().ToArray());
-            const auto& screenOnCameraCoordinateSystem = CoordinateSystem2D::FromArray(ConvertScreenPoints(capturedCameraCoordinateSystem, screen));
-
-            const auto drawer = ImGui::GetWindowDrawList();
-            DrawCoordinateSystem(drawer, screenOnOriginCoordinateSystem);
-            DrawCoordinateSystem(drawer, screenOnCameraCoordinateSystem);
-            DrawLineBetweenPoints(drawer, screenOnOriginCoordinateSystem.Origin(), screenOnCameraCoordinateSystem.Origin());
+            DrawCoordinateSystem(ImGui::GetWindowDrawList(), cameraCoordinatesOnScreen);
+            
+            DrawLineBetweenPoints(ImGui::GetWindowDrawList(), originCoordinatesOnScreen.Origin(), cameraCoordinatesOnScreen.Origin());
 
             ImGui::End();
             ImGui::PopStyleColor(1);
