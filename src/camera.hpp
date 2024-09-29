@@ -82,6 +82,10 @@ public:
         const glm::vec4 viewport(0, 1, 1.0, -1.0);
         for(const auto& point : object)
         {
+            // Local Space(3D) -[view]-> Camera View Space(3D)
+            // Camera View Space(3D) -[clip.GetProjection]-> Clip Space(2D): -1 <= x <= 1, -1 <= y <= 1, origin is center
+            // Clip Space(2D) -[in glm::project]-> Normailzed Clip Space(2D): 0 <= x <= 1, 0 <= y <= 1, origin is bottom-left
+            // Normailzed Clip Space(2D) -[viewport]-> Normalized Screen Space(2D): 0 <= x <= 1, 0 <= y <= 1, origin is top-left, invert y-axis, move +1 y-axis
             capturedPoints.emplace_back(
                 glm::project(
                     glm::vec3(point[0], point[1], point[2]),
