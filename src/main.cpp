@@ -237,12 +237,29 @@ int main(int, char**)
             ImGui::Begin("3D Viewer", &show3dWindow);
             if (ImGui::Button("Close Me"))
                  show3dWindow = false;
-            
+
+            if(ImGui::Button("Reset"))
+            {
+                camera = Camera::CreateDefaultCamera();
+            }
+
             static bool displayPointCloud = true;
             ImGui::Checkbox("display pointcloud", &displayPointCloud);
 
             static bool autoRotateY = false;
             ImGui::Checkbox("automatic y", &autoRotateY);
+
+            bool addRotateX = false;
+            if(ImGui::Button("+X"))
+            {
+                addRotateX = true;
+            }
+
+            bool addRotateY = false;
+            if(ImGui::Button("+Y"))
+            {
+                addRotateY = true;
+            }
 
             static bool autoRotateX = false;
             ImGui::Checkbox("automatic x", &autoRotateX);
@@ -264,37 +281,32 @@ int main(int, char**)
                 isDraging = false;
             }
 
-            if(isDraging || autoRotateX || autoRotateY)
+            if(isDraging || autoRotateX || autoRotateY || addRotateY || addRotateX)
             {
                 GlmVecText("Mouse Delta", glm::vec2(io.MouseDelta.x, io.MouseDelta.y));
+                const float deltaAngleX = (2 * IM_PI / windowWidth);
+                const float deltaAngleY = (IM_PI / windowHeight);
+                float mouseDelataX = 0;
+                float mouseDelataY = 0;
+                if (isDraging)
                 {
-                    const float deltaAngleX = (2 * IM_PI / windowWidth);
-                    const float deltaAngleY = (IM_PI / windowHeight);
-                    float mouseDelataX = 0;
-                    float mouseDelataY = 0;
-                    if (isDraging)
-                    {
-                        mouseDelataX = -io.MouseDelta.x;
-                        mouseDelataY = -io.MouseDelta.y;
-                    }
-                    if (autoRotateX)
-                    {
-                        mouseDelataX = 1;
-                    }
-                    if (autoRotateY)
-                    {
-                        mouseDelataY = 1;
-                    }
-                    const float angleX = mouseDelataX * deltaAngleX;
-                    const float angleY = mouseDelataY * deltaAngleY;
-                    glm::vec4 position(camera.GetPosition(), 1);
-                    const glm::vec4 pivot(camera.GetTarget(), 1);
-                    const auto rx = glm::rotate(glm::mat4(1.0), angleX, camera.GetUp());
-                    position = rx * (position - pivot) + pivot;
-                    const auto ry = glm::rotate(glm::mat4(1.0), angleY, camera.GetRightVector());
-                    position = (ry * (position - pivot)) + pivot;
-                    camera = Camera::CreateCamera(position, camera.GetTarget(), camera.GetUp());
+                    mouseDelataX = -io.MouseDelta.x;
+                    mouseDelataY = -io.MouseDelta.y;
                 }
+                if (autoRotateX || addRotateX)
+                {
+                    mouseDelataX = 1;
+                }
+                if (autoRotateY || addRotateY)
+                {
+                    mouseDelataY = 1;
+                }
+                const float angleX = mouseDelataX * deltaAngleX;
+                const float angleY = mouseDelataY * deltaAngleY;
+                glm::vec4 position(camera.Position(), 1);
+                const auto rx = glm::rotate(glm::mat4(1.0), angleX, camera.UpVector());
+                const auto ry = glm::rotate(glm::mat4(1.0), angleY, camera.RightVector());
+                camera.UpdateView(rx * ry);
             }
             const auto& viewportTransform = ViewportTransform::Create(
                 VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowPos()),
@@ -306,7 +318,9 @@ int main(int, char**)
                         camera.Capture(CoordinateSystem3D::Create().ToArray())
                     ));
 
-            DrawCoordinateSystem(ImGui::GetWindowDrawList(), originCoordinatesOnScreen);
+            DrawCoordinateSystem(
+                ImGui::GetWindowDrawList(),
+                originCoordinatesOnScreen);
 
             if(displayPointCloud)
             {
@@ -314,7 +328,10 @@ int main(int, char**)
                     viewportTransform.Transform(
                         camera.Capture(modelPoints)
                     );
-                DrawPointCloud(ImGui::GetWindowDrawList(), capturedPointsOnScreen);
+
+                DrawPointCloud(
+                    ImGui::GetWindowDrawList(),
+                    capturedPointsOnScreen);
             }
 
             ImGui::End();
@@ -326,11 +343,13 @@ int main(int, char**)
             ImGui::PushStyleColor(ImGuiCol_WindowBg, (ImVec4)ImColor(0.35f, 0.3f, 0.3f));
             ImGui::Begin("3D World View", &show3dWindow);
             if (ImGui::Button("Close Me"))
-                 show3dWindow = false;
+            {
+                show3dWindow = false;
+            }
 
-            GlmVecText("Camera Position", camera.GetPosition());
-            GlmMatText("Camera View", camera.GetViewMatrix());
-            GlmMatText("Camera View Inverse", glm::inverse(camera.GetViewMatrix()));
+            GlmVecText("Camera Position", camera.Position());
+            GlmMatText("Camera View", camera.ViewMatrix());
+            GlmMatText("Camera View Inverse", glm::inverse(camera.ViewMatrix()));
 
             const auto& viewportTransform = ViewportTransform::Create(
                 VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowPos()),
@@ -341,7 +360,10 @@ int main(int, char**)
                     viewportTransform.Transform(
                         worldCamera.Capture(CoordinateSystem3D::Create().ToArray())
                     ));
-            DrawCoordinateSystem(ImGui::GetWindowDrawList(), originCoordinatesOnScreen);
+
+            DrawCoordinateSystem(
+                ImGui::GetWindowDrawList(),
+                originCoordinatesOnScreen);
 
             const auto& cameraCoordinatesOnScreen = 
                 CoordinateSystem2D::FromArray(
@@ -349,9 +371,14 @@ int main(int, char**)
                         worldCamera.Capture(camera.CoordinateSystem().ToArray())
                     ));
 
-            DrawCoordinateSystem(ImGui::GetWindowDrawList(), cameraCoordinatesOnScreen);
+            DrawCoordinateSystem(
+                ImGui::GetWindowDrawList(),
+                cameraCoordinatesOnScreen);
 
-            DrawLineBetweenPoints(ImGui::GetWindowDrawList(), originCoordinatesOnScreen.Origin(), cameraCoordinatesOnScreen.Origin());
+            DrawLineBetweenPoints(
+                ImGui::GetWindowDrawList(),
+                originCoordinatesOnScreen.Origin(),
+                cameraCoordinatesOnScreen.Origin());
 
             ImGui::End();
             ImGui::PopStyleColor(1);

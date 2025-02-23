@@ -27,7 +27,7 @@ public:
     static Camera CreateDefaultCamera()
     {
         const auto initialPosition = glm::vec3(0, 0, 100);
-        const auto initialTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+        const auto initialTarget = glm::vec3(5.0f, 5.0f, 5.0f);
         const auto initialUp = glm::vec3(0.0f, 1.0f, 0.0f);
         const auto clip = Clip(200.0f, 200.0f, 10.f, 1000.f);
         return Camera(initialPosition, initialTarget, initialUp, clip);
@@ -42,12 +42,24 @@ public:
         return Camera(initialPosition, initialTarget, initialUp, clip);
     }
 
-    glm::mat4 GetViewMatrix() const { return view; }
-    glm::vec3 GetPosition() const { return position; }
-    glm::vec3 GetUp() const { return up; }
-    glm::vec3 GetTarget() const { return target; }
-    glm::vec3 GetViewDir() const { return -glm::transpose(view)[2]; }
-    glm::vec3 GetRightVector() const { return glm::transpose(view)[0]; }
+    glm::mat4 ViewMatrix() const { return view; }
+    glm::vec3 Position() const { return position; }
+    glm::vec3 UpVector() const { return glm::transpose(view)[1]; }
+    glm::vec3 TargetPosition() const { return target; }
+    glm::vec3 ViewDirection() const { return -glm::transpose(view)[2]; }
+    glm::vec3 RightVector() const { return glm::transpose(view)[0]; }
+
+    void UpdateView(const glm::mat3& rotation)
+    {
+        glm::mat4 transform;
+        transform[0] = glm::vec4(rotation[0], 0.0f);
+        transform[1] = glm::vec4(rotation[1], 0.0f);
+        transform[2] = glm::vec4(rotation[2], 0.0f);
+        transform[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+        view = view * glm::inverse(transform);
+        position = rotation * position;
+    }
 
     CoordinateSystem3D CoordinateSystem() const
     {
