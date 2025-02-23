@@ -176,7 +176,16 @@ int main(int, char**)
         return 1;
     }
 
-    const auto modelPoints = plyIn.getVertexPositions();
+    auto modelPointsRaw = plyIn.getVertexPositions();
+    auto modelPoints = std::vector<std::array<double, 3>>();
+    for(int i = 0; i < modelPointsRaw.size(); i+=10)
+    {
+        modelPoints.push_back({
+            modelPointsRaw[i][0],
+            modelPointsRaw[i][1],
+            modelPointsRaw[i][2]});
+    }
+
     // Our state
     bool showDemoWindow = true;
     bool showAnotherWindow = false;
@@ -248,21 +257,19 @@ int main(int, char**)
 
             static bool autoRotateY = false;
             ImGui::Checkbox("automatic y", &autoRotateY);
-
-            bool addRotateX = false;
-            if(ImGui::Button("+X"))
-            {
-                addRotateX = true;
-            }
+            static bool autoRotateX = false;
+            ImGui::Checkbox("automatic x", &autoRotateX);
 
             bool addRotateY = false;
             if(ImGui::Button("+Y"))
             {
                 addRotateY = true;
             }
-
-            static bool autoRotateX = false;
-            ImGui::Checkbox("automatic x", &autoRotateX);
+            bool addRotateX = false;
+            if(ImGui::Button("+X"))
+            {
+                addRotateX = true;
+            }
 
             float windowWidth = (float)ImGui::GetWindowWidth();
             float windowHeight = (float)ImGui::GetWindowHeight();
@@ -285,7 +292,7 @@ int main(int, char**)
             {
                 GlmVecText("Mouse Delta", glm::vec2(io.MouseDelta.x, io.MouseDelta.y));
                 const float deltaAngleX = (2 * IM_PI / windowWidth);
-                const float deltaAngleY = (IM_PI / windowHeight);
+                const float deltaAngleY = (2 * IM_PI / windowHeight);
                 float mouseDelataX = 0;
                 float mouseDelataY = 0;
                 if (isDraging)
@@ -348,8 +355,8 @@ int main(int, char**)
             }
 
             GlmVecText("Camera Position", camera.Position());
-            GlmMatText("Camera View", camera.ViewMatrix());
-            GlmMatText("Camera View Inverse", glm::inverse(camera.ViewMatrix()));
+            // GlmMatText("Camera View", camera.ViewMatrix());
+            // GlmMatText("Camera View Inverse", glm::inverse(camera.ViewMatrix()));
 
             const auto& viewportTransform = ViewportTransform::Create(
                 VecConverter<glm::vec2, ImVec2>::Convert(ImGui::GetWindowPos()),
